@@ -1,0 +1,353 @@
+{
+  "description": "Simple Survey",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "next": "pineapple_pizza",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingConversationMessage"
+        },
+        {
+          "next": "pineapple_pizza",
+          "event": "incomingRequest"
+        },
+        {
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": -80
+        }
+      }
+    },
+    {
+      "name": "pineapple_pizza",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "check_response_1",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 70,
+          "y": 120
+        },
+        "from": "{{flow.channel.address}}",
+        "body": "On a scale of 1-10, how much do you like pineapple on pizza?",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "check_response_1",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "unknown_answer_1",
+          "event": "noMatch"
+        },
+        {
+          "next": "cake_or_pie",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "1-10",
+              "arguments": [
+                "{{widgets.pineapple_pizza.inbound.Body}}"
+              ],
+              "type": "equal_to",
+              "value": "10"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.pineapple_pizza.inbound.Body}}",
+        "offset": {
+          "x": 70,
+          "y": 340
+        }
+      }
+    },
+    {
+      "name": "unknown_answer_1",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "pineapple_pizza",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -300,
+          "y": 200
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Wrong. Please enter 10."
+      }
+    },
+    {
+      "name": "cake_or_pie",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "check_response_2",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 70,
+          "y": 560
+        },
+        "from": "{{flow.channel.address}}",
+        "body": "Cake or pie?",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "check_response_2",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "unknown_answer_2",
+          "event": "noMatch"
+        },
+        {
+          "next": "yum_pie",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "pie",
+              "arguments": [
+                "{{widgets.cake_or_pie.inbound.Body}}"
+              ],
+              "type": "equal_to",
+              "value": "pie"
+            }
+          ]
+        },
+        {
+          "next": "cake_is_lie",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to cake",
+              "arguments": [
+                "{{widgets.cake_or_pie.inbound.Body}}"
+              ],
+              "type": "equal_to",
+              "value": "cake"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.cake_or_pie.inbound.Body}}",
+        "offset": {
+          "x": 70,
+          "y": 780
+        }
+      }
+    },
+    {
+      "name": "unknown_answer_2",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "cake_or_pie",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -320,
+          "y": 650
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Please enter cake or pie."
+      }
+    },
+    {
+      "name": "best_cms",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "send_results_to_server",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "send_results_to_server",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 70,
+          "y": 1260
+        },
+        "from": "{{flow.channel.address}}",
+        "body": "What is the best CMS for .NET?",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "thank_you",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 70,
+          "y": 1700
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Thank you so much for your valuable opinions!"
+      }
+    },
+    {
+      "name": "send_results_to_server",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "thank_you",
+          "event": "success"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 70,
+          "y": 1480
+        },
+        "method": "POST",
+        "parameters": [
+          {
+            "value": "{{widgets.pineapple_pizza.inbound.Body}} ",
+            "key": "pineappleOnPizza"
+          },
+          {
+            "value": "{{widgets.cake_or_pie.inbound.Body}} ",
+            "key": "cakeOrPie"
+          },
+          {
+            "value": "{{widgets.best_cms.inbound.Body}} ",
+            "key": "bestCms"
+          },
+          {
+            "value": "VeryImportantSurvey",
+            "key": "form"
+          }
+        ],
+        "url": "https://dd6669e1cede.ngrok.io/twilio/flow-to-form",
+        "timeout": 3600
+      }
+    },
+    {
+      "name": "yum_pie",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "best_cms",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "best_cms",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 260,
+          "y": 1020
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "Yum, pie.",
+        "media_url": "https://upload.wikimedia.org/wikipedia/commons/9/91/Tarte_aux_poires_2a.jpg",
+        "timeout": "10"
+      }
+    },
+    {
+      "name": "cake_is_lie",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "best_cms",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "best_cms",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -50,
+          "y": 1020
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "The cake is a lie.",
+        "media_url": "https://upload.wikimedia.org/wikipedia/commons/4/44/Birthday_cake_%282%29.jpg",
+        "timeout": "10"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
