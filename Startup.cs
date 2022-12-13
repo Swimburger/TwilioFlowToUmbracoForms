@@ -36,8 +36,6 @@ public class Startup
             .AddWebsite()
             .AddComposers()
             .Build();
-
-        services.AddTwilioRequestValidation();
     }
 
     /// <summary>
@@ -63,7 +61,6 @@ public class Startup
                 u.UseInstallerEndpoints();
                 u.UseBackOfficeEndpoints();
                 u.UseWebsiteEndpoints();
-                u.UseTwilioEndpoints();
             });
     }
 }
