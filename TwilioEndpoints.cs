@@ -18,12 +18,16 @@ public static class TwilioEndpoints
         return builderContext;
     }
 
-    private static async Task OnFlowToFormPost(HttpRequest request, IFormService formService, IRecordService recordService)
+    private static async Task OnFlowToFormPost(
+        HttpRequest request,
+        IFormService formService,
+        IRecordService recordService
+    )
     {
         var form = await request.ReadFormAsync();
         var formName = form["form"];
-        if(formName == StringValues.Empty) throw new Exception($"'form' parameter missing from form.");
-        
+        if (formName == StringValues.Empty) throw new Exception($"'form' parameter missing from form.");
+
         var umbracoForm = formService.Get(formName);
         if (umbracoForm == null) throw new Exception($"Umbraco Form '{formName}' not found.");
 
@@ -39,7 +43,7 @@ public static class TwilioEndpoints
                 Values = form[key].Cast<object>().ToList()
             });
         }
-        
+
         var record = new Record
         {
             Created = DateTime.Now,
@@ -47,7 +51,7 @@ public static class TwilioEndpoints
             RecordFields = umbracoFormFields,
             State = FormState.Submitted
         };
-        
+
         recordService.Submit(record, umbracoForm);
     }
 }
